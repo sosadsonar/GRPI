@@ -4,7 +4,7 @@ on:
       - '.github/workflows/auto_build.yml'
       - 'main.py'
       - 'requirements.txt'
-
+      - 'Thông Tin Cá Nhân.csv'
 jobs:
   Ubuntu:
     runs-on: ubuntu-latest

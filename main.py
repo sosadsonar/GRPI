@@ -18,6 +18,12 @@ Sexes = []
 Birth_Years = []
 Phone_Numbers = []
 
+# Name
+Surname = []
+Middle_Name = []
+First_Name = []
+Full_Name = []
+
 
 # Input the quantity of random number to be generated
 def handle_quantity_of_number():
@@ -56,15 +62,31 @@ def read_csv_to_dict():
     """
     Reads a CSV file and adds it to a dictionary with the key as the first column and the value as the second column.
     Skip the first row
-    
-    Args:
-        csv_file_path: The path to the CSV file.
     """
-    
     location = {}
     global male_sex_and_birthdate
     male_sex_and_birthdate = {}
     female_sex_and_birthdate = {}
+    
+    # Name
+    global surname
+    global new_surname_prob
+    global new_male_middle_name
+    global new_female_middle_name
+    global male_first_name
+    global new_male_first_name_prob
+    global female_first_name
+    global new_female_first_name_prob   
+    
+    surname = []
+    surname_prob = []
+    new_surname_prob = []
+    male_middle_name = []
+    female_middle_name = []
+    male_first_name = []
+    male_first_name_prob = []
+    female_first_name = []
+    female_first_name_prob = []
 
     # Get personal identities
     with open(csv_path, "r", encoding="utf-8") as file:
@@ -85,12 +107,36 @@ def read_csv_to_dict():
             female_birthdate_code = row[5]
             female_birthdate = row[6]
             female_sex_and_birthdate[female_birthdate_code] = female_birthdate
-        
+            
+            # Get last name
+            surname.append(row[8])
+            surname_prob.append(row[9])
+            
+            # Get middle name
+            male_middle_name.append(row[11])
+            female_middle_name.append(row[12])
+            
+            # Get first name
+            male_first_name.append(row[14])
+            male_first_name_prob.append(row[15])
+            
+            female_first_name.append(row[17])
+            female_first_name_prob.append(row[18])
+      
         # Remove an empty key-pair value at the end of dictionary
         male_sex_and_birthdate.popitem()
         female_sex_and_birthdate.popitem() 
         sex_and_birthdate = [male_sex_and_birthdate, female_sex_and_birthdate]
+        
+        # Convert string to float in prob
+        new_surname_prob = [float(i) for i in surname_prob]
+        new_male_first_name_prob = [float(i) for i in male_first_name_prob]
+        new_female_first_name_prob = [float(i) for i in female_first_name_prob]
      
+        # Remove empty value from name
+        new_male_middle_name = list(filter(None, male_middle_name))
+        new_female_middle_name = list(filter(None, female_middle_name))
+    
     handle_year(location, sex_and_birthdate)
 
 
@@ -141,14 +187,18 @@ def generate_personal_id(location, sex_and_birthdate, min_year, max_year):
         provinces_ids = random.choice(list(location.keys()))
         Provinces_Name.append(random.choice(list(location.values())))
         
-        # Get a random sex
+        # Get random sex and name
         random_sex_and_birthdate = random.choice(sex_and_birthdate)
         sexes = next((key for key in random_sex_and_birthdate if random_sex_and_birthdate[key] == year[:2]), None)
         if sexes in male_sex_and_birthdate:
             Sexes.append("Nam")
+            Middle_Name.append(random.choice(new_male_middle_name))
+            First_Name = random.choices(male_first_name, new_male_first_name_prob, k = quantity)
         else:
             Sexes.append("Nữ")
-        
+            Middle_Name.append(random.choice(new_female_middle_name))
+            First_Name = random.choices(female_first_name, new_female_first_name_prob, k = quantity)
+            
         # Get random birthdate
         Birth_Years.append(year)
         birth_years = year[-2:]
@@ -163,10 +213,15 @@ def generate_personal_id(location, sex_and_birthdate, min_year, max_year):
         # Get random phone number
         Phone_Numbers.append("0" + str(random.randint(100, 999)) + " " + (str(random.randint(0, 999))).zfill(3) + " " + (str(random.randint(0, 999))).zfill(3))
         
+        # Get name
+        Surname = random.choices(surname, new_surname_prob, k = quantity)
+        Full_Name.append(Surname[i] + " " + Middle_Name[i] + " " + First_Name[i])
+        
         # Get personal IDs
         Personal_IDs.append(provinces_ids + sexes + birth_years + random_integer_str)
     
     export_to_xlsx_file()
+    
     
 def export_to_xlsx_file():
     # Create an XlsxWriter workbook
@@ -187,18 +242,20 @@ def export_to_xlsx_file():
         cell_format.set_align("vcenter")       
         
         # Write Headers
-        worksheet.write("A1", "Mã căn cước công dân", header_format)
-        worksheet.write("B1", "Tỉnh", header_format)
-        worksheet.write("C1", "Giới tính", header_format)
-        worksheet.write("D1", "Năm sinh", header_format)
-        worksheet.write("E1", "Số điện thoại", header_format)
+        worksheet.write("A1", "Họ và tên", header_format)
+        worksheet.write("B1", "Căn cước công dân", header_format)
+        worksheet.write("C1", "Tỉnh", header_format)
+        worksheet.write("D1", "Giới tính", header_format)
+        worksheet.write("E1", "Năm sinh", header_format)
+        worksheet.write("F1", "Số điện thoại", header_format)
         
         for i in range(quantity):
-            worksheet.write("A" + str(i + 2), Personal_IDs[i], cell_format)
-            worksheet.write("B" + str(i + 2), Provinces_Name[i], cell_format)
-            worksheet.write("C" + str(i + 2), Sexes[i], cell_format)
-            worksheet.write("D" + str(i + 2), Birth_Years[i], cell_format)
-            worksheet.write("E" + str(i + 2), Phone_Numbers[i], cell_format)
+            worksheet.write("A" + str(i + 2), Full_Name[i], cell_format)
+            worksheet.write("B" + str(i + 2), Personal_IDs[i], cell_format)
+            worksheet.write("C" + str(i + 2), Provinces_Name[i], cell_format)
+            worksheet.write("D" + str(i + 2), Sexes[i], cell_format)
+            worksheet.write("E" + str(i + 2), Birth_Years[i], cell_format)
+            worksheet.write("F" + str(i + 2), Phone_Numbers[i], cell_format)
         
         # Autofit the worksheet.
         worksheet.autofit()
