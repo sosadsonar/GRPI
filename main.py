@@ -69,20 +69,49 @@ def read_csv_to_dict():
     female_sex_and_birthdate = {}
     
     # Name
+    global male_name
+    global female_name
+    
+    global name
     global surname
     global new_surname_prob
-    global new_male_middle_name
-    global new_female_middle_name
+    
+    global male_middle1_name
+    global new_male_middle1_name_prob
+    global female_middle1_name
+    global new_female_middle1_name_prob
+    
+    global male_middle2_name
+    global new_male_middle2_name_prob
+    global female_middle2_name
+    global new_female_middle2_name_prob
+    
     global male_first_name
     global new_male_first_name_prob
     global female_first_name
     global new_female_first_name_prob   
     
+    male_name = ["3", "4"]
+    female_name = ["3", "4"]
+    
+    # Surname
     surname = []
     surname_prob = []
     new_surname_prob = []
-    male_middle_name = []
-    female_middle_name = []
+    
+    # First middle name
+    male_middle1_name = []
+    male_middle1_name_prob = []
+    female_middle1_name = []
+    female_middle1_name_prob = []
+    
+    # Second middle name
+    male_middle2_name = []
+    male_middle2_name_prob = []
+    female_middle2_name = []
+    female_middle2_name_prob = []
+    
+    # First name
     male_first_name = []
     male_first_name_prob = []
     female_first_name = []
@@ -112,30 +141,38 @@ def read_csv_to_dict():
             surname.append(row[8])
             surname_prob.append(row[9])
             
-            # Get middle name
-            male_middle_name.append(row[11])
-            female_middle_name.append(row[12])
+            # Get first middle name
+            male_middle1_name.append(row[10])
+            male_middle1_name_prob.append(row[11])
+            female_middle1_name.append(row[12])
+            female_middle1_name_prob.append(row[13])
+            
+            # Get second middle name
+            male_middle2_name.append(row[14])
+            male_middle2_name_prob.append(row[15])
+            female_middle2_name.append(row[16])
+            female_middle2_name_prob.append(row[17])
             
             # Get first name
-            male_first_name.append(row[14])
-            male_first_name_prob.append(row[15])
-            
-            female_first_name.append(row[17])
-            female_first_name_prob.append(row[18])
+            male_first_name.append(row[18])
+            male_first_name_prob.append(row[19])
+            female_first_name.append(row[20])
+            female_first_name_prob.append(row[21])
       
         # Remove an empty key-pair value at the end of dictionary
         male_sex_and_birthdate.popitem()
         female_sex_and_birthdate.popitem() 
+        location.popitem()
         sex_and_birthdate = [male_sex_and_birthdate, female_sex_and_birthdate]
         
         # Convert string to float in prob
         new_surname_prob = [float(i) for i in surname_prob]
+        new_male_middle1_name_prob = [float(i) for i in male_middle1_name_prob]
+        new_female_middle1_name_prob = [float(i) for i in female_middle1_name_prob]
+        new_male_middle2_name_prob = [float(i) for i in male_middle2_name_prob]
+        new_female_middle2_name_prob = [float(i) for i in female_middle2_name_prob]
         new_male_first_name_prob = [float(i) for i in male_first_name_prob]
         new_female_first_name_prob = [float(i) for i in female_first_name_prob]
-     
-        # Remove empty value from name
-        new_male_middle_name = list(filter(None, male_middle_name))
-        new_female_middle_name = list(filter(None, female_middle_name))
     
     handle_year(location, sex_and_birthdate)
 
@@ -185,19 +222,29 @@ def generate_personal_id(location, sex_and_birthdate, min_year, max_year):
         
         # Get random area code and name
         provinces_ids = random.choice(list(location.keys()))
-        Provinces_Name.append(random.choice(list(location.values())))
+        Provinces_Name.append(location[provinces_ids])
         
         # Get random sex and name
         random_sex_and_birthdate = random.choice(sex_and_birthdate)
         sexes = next((key for key in random_sex_and_birthdate if random_sex_and_birthdate[key] == year[:2]), None)
         if sexes in male_sex_and_birthdate:
-            Sexes.append("Nam")
-            Middle_Name.append(random.choice(new_male_middle_name))
-            First_Name = random.choices(male_first_name, new_male_first_name_prob, k = quantity)
+            Sexes.append("Nam") 
+            if (random.choices(male_name, [0.75, 0.25])) == ["3"]:
+                Middle_Name.extend(random.choices(male_middle1_name, new_male_middle1_name_prob))
+            else:
+                lst1 = ' '.join([str(elem) for elem in random.choices(male_middle1_name, new_male_middle1_name_prob)])
+                lst2 = ' '.join([str(elem) for elem in random.choices(male_middle2_name, new_male_middle2_name_prob)])
+                Middle_Name.append(lst1 + " " + lst2)
+            First_Name.extend(random.choices(male_first_name, new_male_first_name_prob))
         else:
             Sexes.append("Nữ")
-            Middle_Name.append(random.choice(new_female_middle_name))
-            First_Name = random.choices(female_first_name, new_female_first_name_prob, k = quantity)
+            if random.choices(female_name, [0.35, 0.65]) == ["3"]:
+                Middle_Name.extend(random.choices(female_middle1_name, new_female_middle1_name_prob))
+            else:
+                lst1 = ' '.join([str(elem) for elem in random.choices(female_middle1_name, new_female_middle1_name_prob)])
+                lst2 = ' '.join([str(elem) for elem in random.choices(female_middle2_name, new_female_middle2_name_prob)])
+                Middle_Name.append(lst1 + " " + lst2)
+            First_Name.extend(random.choices(female_first_name, new_female_first_name_prob))
             
         # Get random birthdate
         Birth_Years.append(year)
@@ -214,12 +261,12 @@ def generate_personal_id(location, sex_and_birthdate, min_year, max_year):
         Phone_Numbers.append("0" + str(random.randint(100, 999)) + " " + (str(random.randint(0, 999))).zfill(3) + " " + (str(random.randint(0, 999))).zfill(3))
         
         # Get name
-        Surname = random.choices(surname, new_surname_prob, k = quantity)
+        Surname.extend(random.choices(surname, new_surname_prob))
         Full_Name.append(Surname[i] + " " + Middle_Name[i] + " " + First_Name[i])
         
         # Get personal IDs
         Personal_IDs.append(provinces_ids + sexes + birth_years + random_integer_str)
-    
+
     export_to_xlsx_file()
     
     
@@ -235,7 +282,6 @@ def export_to_xlsx_file():
         header_format.set_align("center")
         header_format.set_align("vcenter")   
         header_format.set_bg_color("#ff7b59")
-        
         
         cell_format = workbook.add_format()
         cell_format.set_align("center")
